@@ -86,7 +86,7 @@ Then run:
 
     bundle
 
-## Storing and retrieving data
+### Storing and retrieving data
 
 Create a new container with 
 
@@ -102,7 +102,7 @@ container.write(data) # Passes data on to the Resity::Format object
 
 The underlying container file will only be opened (and locked) while beeing accessed through seek, read and write
 
-## Implementing custom formats
+### Implementing custom formats
 
 By subclassing Resity::Format, custom data formats can be implemented. 
 
@@ -118,3 +118,8 @@ write_delta(file) # write delta generated from new data compared to last data se
 data(data) # set data, should automatically generate a delta compared to your last dataset
 data=() # get data, retrieve current buffered data
 ```
+## Running the tests
+
+Resity uses RSpec. To run the tests, use:
+
+    rake spec
