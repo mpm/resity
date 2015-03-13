@@ -72,9 +72,6 @@ Custom formats can be implemented by subclassing Resity::Format
 
 ## Usage
 
-### Requirements
-
-Ruby 1.9.3+ (?)
 
 ### Installation
 
