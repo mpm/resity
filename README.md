@@ -115,6 +115,7 @@ write_delta(file) # write delta generated from new data compared to last data se
 data(data) # set data, should automatically generate a delta compared to your last dataset
 data=() # get data, retrieve current buffered data
 ```
+
 ## Running the tests
 
 Resity uses RSpec. To run the tests, use:
