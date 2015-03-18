@@ -107,8 +107,10 @@ module Resity
       end
 
       def calc_delta(old, new)
-        # updates_bids = Utils::Diff.updates(@bids, book[:bids])
-        # updates_asks = Utils::Diff.updates(@asks, book[:asks])
+        {
+          bids: Resity::Diff.updates(old[:bids], new[:bids]),
+          asks: Resity::Diff.updates(old[:asks], new[:asks])
+        }
       end
     end
   end
