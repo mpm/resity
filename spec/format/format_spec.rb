@@ -28,6 +28,14 @@ describe Resity::Format do
       expect(format).to receive(:calc_delta).with(120, 125)
       format.data = 125
     end
+
+    it 'stores results from delta method in delta_data' do
+      format.data = 120
+
+      expect(format).to receive(:calc_delta).with(120, 125).and_return(5)
+      format.data = 125
+      expect(format.delta_data).to eq(5)
+    end
   end
 
 end

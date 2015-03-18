@@ -12,7 +12,7 @@ module Resity
       end
 
       def data=(value)
-        @delta = calc_delta(data, value)
+        @delta_data = calc_delta(data, value)
         @last_data = data
         @data = value
       end
