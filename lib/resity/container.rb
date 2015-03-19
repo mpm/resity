@@ -6,24 +6,26 @@ module Resity
     STORAGE_VERSION = 1
 
     attr_accessor :name, :bids, :asks, :last_timestamp, :format
-    attr_reader :io, :header
+    attr_reader :io, :header, :logger
 
     def initialize(filename, format, options = {})
+      raise 'invalid format' if !format.is_a?(Resity::Format)
+      @logger = options[:logger]
       @name = filename
       @bids = {}
       @asks = {}
       @file = nil
       @io = options[:io]
       unless @io
-        ff ="#{Barb::Application.root}/log/#{name}.aggr"
+        ff = filename
         unless File.exists?(ff)
-          $logger.info "fresh db created at #{ff}"
+          logger.info "fresh db created at #{ff}" if logger
           f = File.open(ff, 'w')
           f.close
         end
         @io = File.open(ff, "r+b")
         unless @io.flock(File::LOCK_EX)
-          $logger.warn "could not lock db #{ff}"
+          logger.warn "could not lock db #{ff}" if logger
         end
       end
       @last_timestamp = nil
