@@ -1,3 +1,4 @@
+require 'json'
 module Resity
   class Container
     # number of diff sets, after there will be a new full snapshot stored,
@@ -5,11 +6,13 @@ module Resity
     MAX_CHANGESETS = 1000
     STORAGE_VERSION = 1
 
-    attr_accessor :name, :bids, :asks, :last_timestamp, :format
+    attr_accessor :name, :last_timestamp, :format
     attr_reader :io, :header, :logger
 
     def initialize(filename, format, options = {})
-      raise 'invalid format' if !format.is_a?(Resity::Format)
+      @format = format.new
+      raise "invalid format #{@format.class}" if !(format < Resity::Format::Base)
+      @format = format.new
       @logger = options[:logger]
       @name = filename
       @bids = {}
@@ -45,86 +48,24 @@ module Resity
     def seek_timestamp(timestamp)
       @io.seek(1024)
       while (scan_last_timestamp(timestamp) == :next_checkpoint) do
-
+        raise 'huh?'
       end
     end
 
-    def add_snapshot(timestamp, book)
+    def add_snapshot(timestamp, data)
       if @last_checkpoint == nil || @last_checkpoint.num_changesets >= MAX_CHANGESETS
-        add_full_snapshot(timestamp, book)
+        add_full_snapshot(timestamp, data)
       else
-        add_diff(timestamp, book)
+        add_diff(timestamp, data)
       end
     end
 
 
-    def dump(options = {})
-      recov = options[:recovery]
-      w = 30
-      puts "Header"
-      puts "-" * w
-      puts "name:            #{@header.name}"
-      puts "version:         #{@header.version}"
-      puts "type:            #{@header.type}"
-      puts "last_checkpoint: #{@header.last_checkpoint}"
-      puts "json_config:     #{@header.json_config}"
-      puts
-      puts "Checkpoints"
-      puts "-" * w
-      @io.seek(1024)
-      ccount = 0
-      cph = CheckpointHeader.new
-      obh = OrderbookHeader.new
-      obr = OrderbookRecord.new
-      last_ts = 0
-      while(@io.pos <= @header.last_checkpoint || recov) do
-        cph.clear
-        cph.read(@io)
-        if recov && cph.num_changesets == 0
-          print "WARN: recovering number of changesets: "
-          current = @io.pos
-          cs_count = 0
-          obh.clear
-          obh.read(@io)
-          l = last_ts
-          # while (obh.timestamp > lt && obh.currency_conversion == 0 && (obh.bids_count + obh.asks_count) > 0 && !@io.eof?) do
-          while (obh.timestamp > l && obh.currency_conversion == 1 && (obh.bids_count + obh.asks_count) > 0 && !@io.eof?) do
-            cs_count += 1
-            l = obh.timestamp
-            obh.clear
-            obh.read(@io)
-          end
-          @io.seek(current)
-          puts "probably #{cs_count}"
-          cph.num_changesets = cs_count
-          last_ts = obh.timestamp
-        end
-        puts "CP #{ccount += 1}:  #{cph.num_changesets} changesets"
-        cph.num_changesets.times do |obh_seq|
-          obh.clear
-          obh.read(@io)
-          puts " OBH #{obh_seq}: Time: #{Time.at(obh.timestamp / 1000.0)}. bids: #{obh.bids_count}, asks: #{obh.asks_count}"
-          puts " WARN: timestamp dates to the past, compared to previous (#{Time.at(last_ts / 1000.0)}) changeset." if obh.timestamp < last_ts
-          puts " WARN: timestamp set in the future." if obh.timestamp > Time.now.to_f * 1000
-          print " "
-          last_ts = obh.timestamp
-          (obh.bids_count + obh.asks_count).times do
-            obr.clear
-            obr.read(@io)
-            puts "  #{obr.price} #{obr.amount}"
-            # print "."
-          end
-          print "\n"
-        end
-      end
-      puts
-      puts "Scan complete. Position: #{@io.pos}, filesize: #{@io.size}"
-    end
 
     private
 
     def initialize_file
-      @header = StorageHeader.new
+      @header = Frames::StorageHeader.new
       @header.version = STORAGE_VERSION
       @header.type = 20
       @header.name = @name
@@ -135,7 +76,7 @@ module Resity
 
     def initialize_from_file
       @io.seek(0)
-      @header = StorageHeader.new
+      @header = Resity::Frames::StorageHeader.new
       @header.read(@io)
       raise StorageError.new("incompatible container format: #{@header.version}") if @header.version > STORAGE_VERSION
     end
@@ -149,66 +90,34 @@ module Resity
       @io.seek(0, :END)
       @header.last_checkpoint = @io.pos
 
-      cp = CheckpointHeader.new
+      cp = Frames::CheckpointHeader.new
       cp.previous_block = prev_block #TODO block pos!
       cp.next_block = 0
       cp.num_changesets = 0
       cp.write(@io)
       @last_checkpoint = cp
       
-      @asks = {}
-      @bids = {}
-      add_diff(timestamp, book)
-      # @bids = book[:bids]
-      # @asks = book[:asks]
-      # write_orderbook_records(timestamp, book)
-
-      # @last_checkpoint.increase_changesets
-      # update_last_checkpoint
-      # @last_timestamp = timestamp
-
-      write_header
-      # puts "added snapshot. header points to #{@header.last_checkpoint}"
+      # store data?
+      @io.seek(0, :END)
+      @format.write_snapshot(@io, timestamp)
+      post_write_handling(timestamp)
+      write_header # nur wg block pointers?
     end
 
-    def add_diff(timestamp, book)
+    def add_diff(timestamp, data)
       @io.seek(0, :END)
 
       raise "last checkpoint unkown" unless @last_checkpoint
 
-      updates_bids = Utils::Diff.updates(@bids, book[:bids])
-      updates_asks = Utils::Diff.updates(@asks, book[:asks])
-
-      write_orderbook_records(timestamp, { bids: updates_bids, asks: updates_asks })
-      @last_checkpoint.increase_changesets
-      update_last_checkpoint
-
-      @bids = book[:bids]
-      @asks = book[:asks]
-      @last_timestamp = timestamp
+      @format.update(data, timestamp)
+      @format.write_delta(@io, timestamp)
+      post_write_handling(timestamp)
     end
 
-    # adds orderbook header + book records.
-    def write_orderbook_records(timestamp, book)
-      bids = book[:bids]
-      asks = book[:asks]
-      # puts "writing to orderbook: #{book.inspect}"
-
-      obh = OrderbookHeader.new
-      obh.bids_count = bids.size
-      obh.asks_count = asks.size
-      obh.timestamp = (timestamp.to_f * 1000).to_i # TODO
-      obh.currency_conversion = 1
-      obh.write(@io)
-
-      row = OrderbookRecord.new
-      [bids, asks].each do |one_book|
-        one_book.each do |price, amount|
-          row.price = price
-          row.amount = amount
-          row.write(@io)
-        end
-      end
+    def post_write_handling(timestamp)
+      @last_checkpoint.increase_changesets
+      update_last_checkpoint
+      @last_timestamp = timestamp
     end
 
     def scan_last_timestamp(target_timestamp = nil)
@@ -224,17 +133,16 @@ module Resity
         end
       end
 
-      cp = CheckpointHeader.new
+      cp = Frames::CheckpointHeader.new
       cp.read(@io)
 
       @last_checkpoint = cp
 
       # starting from a fresh checkpoint, so reset existing bids and asks
-      @bids = {}
-      @asks = {}
+      @format.reset
 
-      ob = OrderbookHeader.new
-      row = OrderbookRecord.new
+      ob = Resity::Frames::OrderbookHeader.new
+      row = Resity::Frames::OrderbookRecord.new
 
       # puts "num changesets: #{cp.num_changesets}"
       cp.num_changesets.times do

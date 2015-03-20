@@ -51,6 +51,14 @@ describe Resity::Format::OrderBook do
     end
   end
 
+  describe "#reset" do
+    it 'generates an empty orderbook without delta' do
+      format.update(book)
+      format.reset
+      expect(format.data).to eq({bids:{}, asks:{}})
+    end
+  end
+
   context "I/O" do
     let(:buffer) { Resity::Format::OrderBook.new }
     let(:file) { StringIO.new }

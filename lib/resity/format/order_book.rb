@@ -36,14 +36,14 @@ module Resity
 
       def initialize
         super
-        clear_data
+        reset
         @last_timestamp = nil
         @obh = OrderBookHeader.new
         @obr = OrderBookRecord.new
       end
 
       def read_snapshot(file)
-        clear_data
+        reset
         read_order_book(file)
       end
 
@@ -59,11 +59,14 @@ module Resity
         write_order_book_records(file, delta_data, timestamp || Time.now)
       end
 
-      private
-
-      def clear_data
+      def reset
+        # NOTE: delta_data might be have to cleared out to- 
+        # if ever someone will mix reading and writing to a file
+        # TODO: add immutable flag to decide wether its read or write
         @data = @last_data = { bids: {}, asks: {} }
       end
+
+      private
 
       def read_order_book(file)
         @obh.read(file)

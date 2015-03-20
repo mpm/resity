@@ -9,7 +9,7 @@ describe Resity::Container do
   end
 
   describe "#new", focus: true do
-    it 'raises an error if no format class is given as format' do
+    it ', Raises an error if no format class is given as format' do
       expect {
         Resity::Container.new('test_btcusd', Integer)
       }.to raise_exception
@@ -38,7 +38,7 @@ describe Resity::Container do
 
   describe "#add_snapshot" do
     it "creates a checkpoint" do
-      ob = Resity::Container.new('test_btcusd', io: @file)
+      ob = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
       book = { 
                bids: { 110.0 => 2.1, 111.0 => 2.2 },
                asks: { 300.0 => 1.4, 301.0 => 0.008 }
@@ -46,14 +46,14 @@ describe Resity::Container do
       ob.add_snapshot(Time.now, book)
 
       @file.seek(0)
-      ob2 = Resity::Container.new('test_btcusd', io: @file)
+      ob2 = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
 
       ob2.bids.should == {110.0 => 2.1, 111.0 => 2.2 }
       ob2.asks.should == { 300.0 => 1.4, 301.0 => 0.008 }
     end
 
     it "creates one checkpoint and multiple diff sets" do
-      ob = Resity::Container.new('test_btcusd', io: @file)
+      ob = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
       book = { 
                bids: { 110.0 => 2.1, 111.0 => 2.2 },
                asks: { 300.0 => 1.4, 301.0 => 0.008 }
@@ -63,13 +63,13 @@ describe Resity::Container do
       ob.add_snapshot(t + 10, book)
       ob.add_snapshot(t + 20, book.merge({ bids: { 110.0 => 2.1 }}))
 
-      ob2 = Resity::Container.new('test_btcusd', io: @file)
+      ob2 = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
       ob2.bids.should == { 110.0 => 2.1, 111.0 => 0.0 }
       ob2.asks.should == { 300.0 => 1.4, 301.0 => 0.008 }
     end
 
     it "creates another checkpoint if MAX_CHANGESETS changesets have been stored" do
-      ob = Resity::Container.new('test_btcusd', io: @file)
+      ob = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
       book = {
                bids: { 110.0 => 2.1, 111.0 => 2.2 },
                asks: { 300.0 => 1.4, 301.0 => 0.008 }
@@ -78,7 +78,7 @@ describe Resity::Container do
       52.times do
         ob.add_snapshot(t, book)
       end
-      ob2 = Resity::Container.new('test_btcusd', io: @file)
+      ob2 = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
       ob2.bids.should == { 110.0 => 2.1, 111.0 => 2.2 }
       ob2.asks.should == { 300.0 => 1.4, 301.0 => 0.008 }
     end
@@ -86,7 +86,7 @@ describe Resity::Container do
     describe "pointers" do
       before(:each) do
 
-        ob = Resity::Container.new('test_btcusd', io: @file)
+        ob = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
         book = {
           bids: { 110.0 => 2.1, 111.0 => 2.2 },
           asks: { 300.0 => 1.4, 301.0 => 0.008 }
@@ -96,7 +96,7 @@ describe Resity::Container do
           ob.add_snapshot(t + i, book)
         end
 
-        @ob2 = Resity::Container.new('test_btcusd', io: @file)
+        @ob2 = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
       end
 
       it "sets next_block pointer to EOF+1 if last checkpoint" do
@@ -130,13 +130,13 @@ describe Resity::Container do
   describe "#at_timestamp" do
     it "scans multiple blocks" do
       # FIXME: error: creating this stalles the tests.
-      ob = Resity::Container.new('test_btcusd', io: @file)
+      ob = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
       book = { bids: { 110.0 => 5 }, asks: {} }
       t = Time.now
       53.times do |o|
         ob.add_snapshot(t + o * 10, book)
       end
-      ob2 = Resity::Container.new('test_btcusd', io: @file)
+      ob2 = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
       ob2.seek_timestamp(t + 51 * 10 + 3)
       ob2.bids.should == { 110.0 => 5 }
       ob2.last_timestamp.to_i.should == (t + 51 * 10).to_i
