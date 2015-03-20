@@ -33,19 +33,19 @@ describe Resity::Format::OrderBook do
     end
   end
 
-  describe "#data= and calc_delta" do
+  describe "#update and calc_delta" do
     it 'assinging data calls calc_delta with these params (already covered in format_spec.rb)' do
-      format.data = book
+      format.update(book)
 
       expect(format).to receive(:calc_delta).with(book, book2)
-      format.data = book2
+      format.update(book2)
     end
 
     # spec is mainly for creating a proper delta_data hash, diffing the books themselfs is
     # thoroughly spec'd in diff_spec.rb
     it 'delta_data holds proper diff' do
-      format.data = book
-      format.data = book2
+      format.update(book)
+      format.update(book2)
       expect(format.delta_data[:bids]).to eq({100.0 => 5.0, 98.0 => 0.0})
       expect(format.delta_data[:asks]).to eq({101.0 => 0.0, 102.0 => 0.0})
     end
@@ -57,11 +57,11 @@ describe Resity::Format::OrderBook do
 
     describe "#read_snapshot" do
       it "overwrites existing data with new snapshot" do
-        buffer.data = book2
+        buffer.update(book2)
         buffer.write_snapshot(file)
         file.seek(0)
 
-        format.data = book
+        format.update(book)
         format.read_snapshot(file)
         expect(format.data[:bids]).to eq({ 100.0 => 5.0, 99.0 => 2.1 })
         expect(format.data[:asks]).to eq({ 101.0 => 0.0, 103.0 => 0.5 })
@@ -70,12 +70,12 @@ describe Resity::Format::OrderBook do
 
     describe "#read_delta" do
       it "applies delta to existing order book" do
-        buffer.data = book
-        buffer.data = book2
+        buffer.update(book)
+        buffer.update(book2)
         buffer.write_delta(file)
         file.seek(0)
 
-        format.data = book
+        format.update(book)
         format.read_delta(file)
 
         expect(format.data[:bids]).to eq(book2[:bids].merge({98.0 => 0.0}))
@@ -85,8 +85,8 @@ describe Resity::Format::OrderBook do
 
     describe "#write_snapshot" do
       it "writes complete order book" do
-        format.data = book
-        format.data = book2
+        format.update(book)
+        format.update(book2)
         format.write_snapshot(file)
 
         file.seek(0)
@@ -98,8 +98,8 @@ describe Resity::Format::OrderBook do
 
     describe "#write_delta" do
       it "writes delta from old and new order book" do
-        format.data = book
-        format.data = book2
+        format.update(book)
+        format.update(book2)
         format.write_delta(file)
 
         file.seek(0)
@@ -116,7 +116,7 @@ describe Resity::Format::OrderBook do
 
   describe "#data" do
     it "returns current data" do
-      format.data = book
+      format.update(book)
       expect(format.data).to eq(book)
     end
   end

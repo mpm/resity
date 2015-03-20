@@ -11,31 +11,38 @@ describe Resity::Format do
 
   describe "#data" do
     it "returns current data" do
-      format.data = 'test'
+      format.update('test')
       expect(format.data).to eq('test')
     end
+  end
 
+  describe "#update" do
     it 'stores previous data in last_data' do
-      format.data = 120
-      format.data = 125
+      format.update(120)
+      format.update(125)
       expect(format.data).to eq(125)
       expect(format.last_data).to eq(120)
     end
 
+    it 'stores a given timestamp current_timestamp' do
+      ts = Time.now - 24 * 60
+      format.update(125, ts)
+      expect(format.current_timestamp).to eq(ts)
+    end
+
     it 'calls delta method' do
-      format.data = 120
+      format.update(120)
 
       expect(format).to receive(:calc_delta).with(120, 125)
-      format.data = 125
+      format.update(125)
     end
 
     it 'stores results from delta method in delta_data' do
-      format.data = 120
+      format.update(120)
 
       expect(format).to receive(:calc_delta).with(120, 125).and_return(5)
-      format.data = 125
+      format.update(125)
       expect(format.delta_data).to eq(5)
     end
   end
-
 end

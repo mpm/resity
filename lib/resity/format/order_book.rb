@@ -51,12 +51,12 @@ module Resity
         read_order_book(file)
       end
 
-      def write_snapshot(file)
-        write_order_book_records(file, data, Time.now)
+      def write_snapshot(file, timestamp = nil)
+        write_order_book_records(file, data, timestamp || Time.now)
       end
 
-      def write_delta(file)
-        write_order_book_records(file, delta_data, Time.now)
+      def write_delta(file, timestamp = nil)
+        write_order_book_records(file, delta_data, timestamp || Time.now)
       end
 
       private
