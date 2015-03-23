@@ -141,8 +141,9 @@ module Resity
       # starting from a fresh checkpoint, so reset existing bids and asks
       @format.reset
 
-      ob = Resity::Frames::OrderbookHeader.new
-      row = Resity::Frames::OrderbookRecord.new
+      # TODO: das hier rausschmeissen und stattdessen format container beutzen!
+      ob = Resity::Format::OrderBookHeader.new
+      row = Resity::Format::OrderBookRecord.new
 
       # puts "num changesets: #{cp.num_changesets}"
       cp.num_changesets.times do
@@ -155,7 +156,7 @@ module Resity
         @last_timestamp = Time.at(ob.timestamp / 1000.0)
         # puts "bids/asks: #{ob.bids_count}/#{ob.asks_count}. ts: #{@last_timestamp}"
         ob.bids_count.times do
-        row = OrderbookRecord.new
+        row = Resity::Format::OrderBookRecord.new
           row.read(@io)
           # FIXME: float == fishy
           @bids[row.price.to_f] = row.amount.to_f
