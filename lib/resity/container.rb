@@ -60,7 +60,9 @@ module Resity
       end
     end
 
-
+    def data
+      @format.data
+    end
 
     private
 

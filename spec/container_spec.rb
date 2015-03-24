@@ -48,8 +48,8 @@ describe Resity::Container do
       @file.seek(0)
       ob2 = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
 
-      ob2.bids.should == {110.0 => 2.1, 111.0 => 2.2 }
-      ob2.asks.should == { 300.0 => 1.4, 301.0 => 0.008 }
+      expect(ob2.data[:bids]).to eq({110.0 => 2.1, 111.0 => 2.2})
+      expect(ob2.data[:asks]).to eq({300.0 => 1.4, 301.0 => 0.008})
     end
 
     it "creates one checkpoint and multiple diff sets" do
@@ -64,8 +64,8 @@ describe Resity::Container do
       ob.add_snapshot(t + 20, book.merge({ bids: { 110.0 => 2.1 }}))
 
       ob2 = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
-      ob2.bids.should == { 110.0 => 2.1, 111.0 => 0.0 }
-      ob2.asks.should == { 300.0 => 1.4, 301.0 => 0.008 }
+      expect(ob2.data[:bids]).to eq({ 110.0 => 2.1, 111.0 => 0.0 })
+      expect(ob2.data[:asks]).to eq({ 300.0 => 1.4, 301.0 => 0.008 })
     end
 
     it "creates another checkpoint if MAX_CHANGESETS changesets have been stored" do
@@ -79,8 +79,8 @@ describe Resity::Container do
         ob.add_snapshot(t, book)
       end
       ob2 = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
-      ob2.bids.should == { 110.0 => 2.1, 111.0 => 2.2 }
-      ob2.asks.should == { 300.0 => 1.4, 301.0 => 0.008 }
+      expect(ob2.data[:bids]).to eq({ 110.0 => 2.1, 111.0 => 2.2 })
+      expect(ob2.data[:asks]).to eq({ 300.0 => 1.4, 301.0 => 0.008 })
     end
 
     describe "pointers" do
@@ -101,7 +101,7 @@ describe Resity::Container do
 
       it "sets next_block pointer to EOF+1 if last checkpoint" do
         @ob2.io.seek(@ob2.header.last_checkpoint)
-        cp = Frames::CheckpointHeader.new
+        cp = Resity::Frames::CheckpointHeader.new
         cp.read(@ob2.io.read)
         # FIXME: laenge berechnen: size - 10x record length - obh - obr
         # oder so
@@ -111,7 +111,7 @@ describe Resity::Container do
 
       it "updates next_block pointer in previous block when adding a new checkpoint" do
         @ob2.io.seek(1024)
-        cp = Frames::CheckpointHeader.new
+        cp = Resity::Frames::CheckpointHeader.new
         cp.read(@ob2.io.read)
         expect(cp.previous_block).to eq(0)
         # FIXME: das es hier einen fehler gibt ist ok.
