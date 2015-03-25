@@ -87,7 +87,7 @@ module Resity
     def add_full_snapshot(timestamp, book)
       # TODO: update old checkpoint.
       prev_block = @last_checkpoint ? @header.last_checkpoint : 0
-      
+
       # puts "add full snapshot"
       @io.seek(0, :END)
       @header.last_checkpoint = @io.pos
@@ -98,7 +98,7 @@ module Resity
       cp.num_changesets = 0
       cp.write(@io)
       @last_checkpoint = cp
-      
+
       # store data?
       @io.seek(0, :END)
       @format.write_snapshot(@io, timestamp)
