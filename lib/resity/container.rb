@@ -11,7 +11,7 @@ module Resity
 
     def initialize(filename, format, options = {})
       @format = format.new
-      raise "invalid format #{@format.class}" if !(format < Resity::Format::Base)
+      raise "invalid format #{@format.class}" if !(format < Format::Base)
       @format = format.new
       @logger = options[:logger]
       @name = filename
@@ -78,7 +78,7 @@ module Resity
 
     def initialize_from_file
       @io.seek(0)
-      @header = Resity::Frames::StorageHeader.new
+      @header = Frames::StorageHeader.new
       @header.read(@io)
       raise StorageError.new("incompatible container format: #{@header.version}") if @header.version > STORAGE_VERSION
     end
@@ -144,8 +144,8 @@ module Resity
       @format.reset
 
       # TODO: das hier rausschmeissen und stattdessen format container beutzen!
-      ob = Resity::Format::OrderBookHeader.new
-      row = Resity::Format::OrderBookRecord.new
+      ob = Format::OrderBookHeader.new
+      row = Format::OrderBookRecord.new
 
       # puts "num changesets: #{cp.num_changesets}"
       cp.num_changesets.times do
@@ -158,7 +158,7 @@ module Resity
         @last_timestamp = Time.at(ob.timestamp / 1000.0)
         # puts "bids/asks: #{ob.bids_count}/#{ob.asks_count}. ts: #{@last_timestamp}"
         ob.bids_count.times do
-        row = Resity::Format::OrderBookRecord.new
+        row = Format::OrderBookRecord.new
           row.read(@io)
           # FIXME: float == fishy
           @bids[row.price.to_f] = row.amount.to_f

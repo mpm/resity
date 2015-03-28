@@ -111,8 +111,8 @@ module Resity
 
       def calc_delta(old, new)
         {
-          bids: Resity::Diff.updates(old[:bids], new[:bids]),
-          asks: Resity::Diff.updates(old[:asks], new[:asks])
+          bids: Diff.updates(old[:bids], new[:bids]),
+          asks: Diff.updates(old[:asks], new[:asks])
         }
       end
     end
