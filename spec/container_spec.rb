@@ -6,19 +6,19 @@ module Resity
     before(:each) do
       # @file = StringIO.new("", "a+b")
       @file = Tempfile.new('barbtest')
-      stub_const("Resity::Container::MAX_CHANGESETS", 10)
+      stub_const("Container::MAX_CHANGESETS", 10)
     end
 
     describe "#new", focus: true do
       it ', Raises an error if no format class is given as format' do
         expect {
-          Resity::Container.new('test_btcusd', Integer)
+          Container.new('test_btcusd', Integer)
         }.to raise_exception
 
       end
 
       xit "writes header if no file exists" do
-        Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
+        Container.new('test_btcusd', Format::OrderBook, io: @file)
         @file.seek(0)
 
         header = Frames::StorageHeader.new
@@ -33,7 +33,7 @@ module Resity
         header.write(@file)
         @file.seek(0)
 
-        expect { Container.new('test_btcusd', Resity::Format::OrderBook, io: @file) }.to raise_exception(Aggregator::StorageError)
+        expect { Container.new('test_btcusd', Format::OrderBook, io: @file) }.to raise_exception(Aggregator::StorageError)
       end
     end
 
@@ -47,14 +47,14 @@ module Resity
         ob.add_snapshot(Time.now, book)
 
         @file.seek(0)
-        ob2 = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
+        ob2 = Container.new('test_btcusd', Format::OrderBook, io: @file)
 
         expect(ob2.data[:bids]).to eq({110.0 => 2.1, 111.0 => 2.2})
         expect(ob2.data[:asks]).to eq({300.0 => 1.4, 301.0 => 0.008})
       end
 
       it "creates one checkpoint and multiple diff sets" do
-        ob = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
+        ob = Container.new('test_btcusd', Format::OrderBook, io: @file)
         book = { 
           bids: { 110.0 => 2.1, 111.0 => 2.2 },
           asks: { 300.0 => 1.4, 301.0 => 0.008 }
@@ -64,13 +64,13 @@ module Resity
         ob.add_snapshot(t + 10, book)
         ob.add_snapshot(t + 20, book.merge({ bids: { 110.0 => 2.1 }}))
 
-        ob2 = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
+        ob2 = Container.new('test_btcusd', Format::OrderBook, io: @file)
         expect(ob2.data[:bids]).to eq({ 110.0 => 2.1, 111.0 => 0.0 })
         expect(ob2.data[:asks]).to eq({ 300.0 => 1.4, 301.0 => 0.008 })
       end
 
       it "creates another checkpoint if MAX_CHANGESETS changesets have been stored" do
-        ob = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
+        ob = Container.new('test_btcusd', Format::OrderBook, io: @file)
         book = {
           bids: { 110.0 => 2.1, 111.0 => 2.2 },
           asks: { 300.0 => 1.4, 301.0 => 0.008 }
@@ -79,7 +79,7 @@ module Resity
         52.times do
           ob.add_snapshot(t, book)
         end
-        ob2 = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
+        ob2 = Container.new('test_btcusd', Format::OrderBook, io: @file)
         expect(ob2.data[:bids]).to eq({ 110.0 => 2.1, 111.0 => 2.2 })
         expect(ob2.data[:asks]).to eq({ 300.0 => 1.4, 301.0 => 0.008 })
       end
@@ -87,7 +87,7 @@ module Resity
       describe "pointers" do
         before(:each) do
 
-          ob = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
+          ob = Container.new('test_btcusd', Format::OrderBook, io: @file)
           book = {
             bids: { 110.0 => 2.1, 111.0 => 2.2 },
             asks: { 300.0 => 1.4, 301.0 => 0.008 }
@@ -97,12 +97,12 @@ module Resity
             ob.add_snapshot(t + i, book)
           end
 
-          @ob2 = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
+          @ob2 = Container.new('test_btcusd', Format::OrderBook, io: @file)
         end
 
         it "sets next_block pointer to EOF+1 if last checkpoint" do
           @ob2.io.seek(@ob2.header.last_checkpoint)
-          cp = Resity::Frames::CheckpointHeader.new
+          cp = Frames::CheckpointHeader.new
           cp.read(@ob2.io.read)
           # FIXME: laenge berechnen: size - 10x record length - obh - obr
           # oder so
@@ -112,7 +112,7 @@ module Resity
 
         it "updates next_block pointer in previous block when adding a new checkpoint" do
           @ob2.io.seek(1024)
-          cp = Resity::Frames::CheckpointHeader.new
+          cp = Frames::CheckpointHeader.new
           cp.read(@ob2.io.read)
           expect(cp.previous_block).to eq(0)
           # FIXME: das es hier einen fehler gibt ist ok.
@@ -131,13 +131,13 @@ module Resity
     describe "#at_timestamp" do
       it "scans multiple blocks" do
         # FIXME: error: creating this stalles the tests.
-        ob = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
+        ob = Container.new('test_btcusd', Format::OrderBook, io: @file)
         book = { bids: { 110.0 => 5 }, asks: {} }
         t = Time.now
         53.times do |o|
           ob.add_snapshot(t + o * 10, book)
         end
-        ob2 = Resity::Container.new('test_btcusd', Resity::Format::OrderBook, io: @file)
+        ob2 = Container.new('test_btcusd', Format::OrderBook, io: @file)
         ob2.seek_timestamp(t + 51 * 10 + 3)
         ob2.bids.should == { 110.0 => 5 }
         ob2.last_timestamp.to_i.should == (t + 51 * 10).to_i
