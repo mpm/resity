@@ -17,23 +17,23 @@ module Resity
 
       end
 
-      xit "writes header if no file exists" do
+      it "writes header if no file exists" do
         Container.new('test_btcusd', Format::OrderBook, io: @file)
         @file.seek(0)
 
         header = Frames::StorageHeader.new
         header.read(@file)
-        header.name.should == 'test_btcusd'
-        @file.length.should == 1024
+        expect(header.name).to eq('test_btcusd')
+        expect(@file.length).to eq(1024)
       end
 
-      xit "breaks if wrong format" do
+      it "breaks if wrong format" do
         header = Frames::StorageHeader.new
         header.version = 40
         header.write(@file)
         @file.seek(0)
 
-        expect { Container.new('test_btcusd', Format::OrderBook, io: @file) }.to raise_exception(Aggregator::StorageError)
+        expect { Container.new('test_btcusd', Format::OrderBook, io: @file) }.to raise_exception(Resity::StorageError)
       end
     end
 
@@ -139,8 +139,8 @@ module Resity
         end
         ob2 = Container.new('test_btcusd', Format::OrderBook, io: @file)
         ob2.seek_timestamp(t + 51 * 10 + 3)
-        ob2.bids.should == { 110.0 => 5 }
-        ob2.last_timestamp.to_i.should == (t + 51 * 10).to_i
+        expect(ob2.data[:bids]).to eq({ 110.0 => 5 })
+        expect(ob2.last_timestamp.to_i).to eq((t + 51 * 10).to_i)
       end
     end
   end

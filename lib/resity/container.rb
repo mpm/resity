@@ -9,6 +9,10 @@ module Resity
     attr_accessor :name, :last_timestamp, :format
     attr_reader :io, :header, :logger
 
+    # TODO: modify this code so that snapshots and diff blocks are handled here, format indepedenlty.
+    # these blocks store the size (in bytes) and timestamp of next data. the actual data block is then
+    # handled by the format class. the new blocks must also include pointers in both diretions.
+    # this way a data point can bef ound without using the format class.
     def initialize(filename, format, options = {})
       @format = format.new
       raise "invalid format #{@format.class}" if !(format < Format::Base)
