@@ -1,4 +1,5 @@
 require "resity/version"
+require "resity/errors"
 require "resity/diff"
 require "resity/format/format"
 require "resity/container"
