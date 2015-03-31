@@ -25,6 +25,8 @@ module Resity
       uint8  :checksum 
       uint32  :num_changesets # numnber of diff sets, say OrderbookHeaders
 
+      # FIXME: needs a timestamp in new version!
+
       def increase_changesets
         # WARNING: += 1 does not work on these fields
         self.num_changesets = self.num_changesets + 1
