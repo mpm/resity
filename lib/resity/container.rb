@@ -68,6 +68,42 @@ module Resity
       @format.data
     end
 
+    # ------
+    #
+
+    def write
+      raise ReadOnlyMode if @read_mode
+      if amount_changesets > max_changesets
+        add_snapshot
+      else
+        add_diff
+      end
+    end
+
+    def xadd_diff
+      write_diff_header
+      @format.write_diff
+      pop_location
+      update_last_snapshot_header
+      update_header
+      push_location
+    end
+
+    def xadd_snapshot
+      # ....
+    end
+
+    def xseek(timestamp)
+      goto_first_snapshot if timestamp < current_timestamp
+
+      while current_timestamp < timestamp
+        read_snapshot # automatically loads next snapshot and skips all diffs inbetween, regardless of current position in file
+      end
+    end
+
+
+
+
     private
 
     def initialize_file
