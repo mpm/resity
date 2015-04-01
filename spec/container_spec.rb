@@ -9,6 +9,29 @@ module Resity
       stub_const("Container::MAX_CHANGESETS", 10)
     end
 
+    describe 'new specs' do
+      describe '#new' do
+        it 'creates a new file if none exists'
+        it 'opens an existing file and skips to the end'
+      end
+
+      describe '#write' do
+        it 'raises an error if opened in read mode'
+        it 'adds a snapshot via format'
+      end
+
+      describe '#seek' do
+        it 'raises an error if opened in write mode'
+        it 'skips forward to the nearest data that is > timestamp'
+        it 'skips backwards to the nearest data the is < timestamp'
+      end
+
+      describe '#read' do
+        it 'reads data into format at given timestamp'
+      end
+
+    end
+
     describe "#new", focus: true do
       it ', Raises an error if no format class is given as format' do
         expect {
@@ -139,6 +162,7 @@ module Resity
         end
         ob2 = Container.new('test_btcusd', Format::OrderBook, io: @file)
         ob2.seek_timestamp(t + 51 * 10 + 3)
+
         expect(ob2.data[:bids]).to eq({ 110.0 => 5 })
         expect(ob2.last_timestamp.to_i).to eq((t + 51 * 10).to_i)
       end
