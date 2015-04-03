@@ -49,12 +49,6 @@ module Resity
       end
     end
 
-    def seek_timestamp(timestamp)
-      @io.seek(1024)
-      while (scan_last_timestamp(timestamp) == :next_checkpoint) do
-        raise 'huh?'
-      end
-    end
 
     def add_snapshot(timestamp, data)
       if @last_checkpoint == nil || @last_checkpoint.num_changesets >= MAX_CHANGESETS
@@ -93,12 +87,19 @@ module Resity
       # ....
     end
 
-    def xseek(timestamp)
+    def seek(timestamp)
       goto_first_snapshot if timestamp < current_timestamp
 
       while current_timestamp < timestamp
         read_snapshot # automatically loads next snapshot and skips all diffs inbetween, regardless of current position in file
+        #while (scan_last_timestamp(timestamp) == :next_checkpoint) do
+        #  raise 'huh?'
+        #end
       end
+    end
+
+    def goto_first_snapshot
+      @io.seek(1024)
     end
 
 

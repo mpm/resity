@@ -32,6 +32,7 @@ module Resity
 
     end
 
+=begin
     describe "#new", focus: true do
       it ', Raises an error if no format class is given as format' do
         expect {
@@ -167,6 +168,7 @@ module Resity
         expect(ob2.last_timestamp.to_i).to eq((t + 51 * 10).to_i)
       end
     end
+=end
   end
 
 end
