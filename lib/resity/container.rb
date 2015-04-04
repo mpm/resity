@@ -62,8 +62,6 @@ module Resity
       @format.data
     end
 
-    # ------
-    #
 
     def write
       raise ReadOnlyMode if @read_mode
