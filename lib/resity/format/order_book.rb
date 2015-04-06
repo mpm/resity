@@ -6,7 +6,6 @@ module Resity
     # it contains the full orderbook. if subsequent headers, if contains a diff
     class OrderBookHeader < ::BinData::Record
       endian :little
-      uint64 :timestamp
       uint32 :currency_conversion
       uint16 :bids_count
       uint16 :asks_count

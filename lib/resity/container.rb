@@ -62,7 +62,6 @@ module Resity
       @format.data
     end
 
-
     def write
       raise ReadOnlyMode if @read_mode
       if amount_changesets > max_changesets
@@ -72,13 +71,22 @@ module Resity
       end
     end
 
-    def xadd_diff
+    def xadd_diff(timestamp)
       write_diff_header
       @format.write_diff
       pop_location
       update_last_snapshot_header
       update_header
       push_location
+    end
+
+    #private
+    def write_diff_header
+      # untested
+      csh = Frames::ChangesetHeader.new
+      csh.timestamp = timestamp
+      @io.write(csh)
+      @format.write_diff
     end
 
     def xadd_snapshot

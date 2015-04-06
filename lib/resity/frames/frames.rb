@@ -33,5 +33,10 @@ module Resity
       end
     end
 
+    class ChangesetHeader < BinData::Record
+      endian :little
+      uint64 :timestamp
+    end
+
   end
 end
