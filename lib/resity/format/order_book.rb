@@ -36,7 +36,6 @@ module Resity
       def initialize
         super
         reset
-        @last_timestamp = nil
         @obh = OrderBookHeader.new
         @obr = OrderBookRecord.new
       end
@@ -50,12 +49,12 @@ module Resity
         read_order_book(file)
       end
 
-      def write_snapshot(file, timestamp = nil)
-        write_order_book_records(file, data, timestamp || Time.now)
+      def write_snapshot(file)
+        write_order_book_records(file, data)
       end
 
-      def write_delta(file, timestamp = nil)
-        write_order_book_records(file, delta_data, timestamp || Time.now)
+      def write_delta(file)
+        write_order_book_records(file, delta_data)
       end
 
       def reset
@@ -86,7 +85,7 @@ module Resity
         @data[key][obr.price.to_f] = obr.amount.to_f
       end
 
-      def write_order_book_records(file, data, timestamp)
+      def write_order_book_records(file, data)
         bids = data[:bids]
         asks = data[:asks]
         # puts "writing to orderbook: #{book.inspect}"
@@ -94,7 +93,7 @@ module Resity
         obh = OrderBookHeader.new
         obh.bids_count = bids.size
         obh.asks_count = asks.size
-        obh.timestamp = (timestamp.to_f * 1000).to_i # TODO
+        #obh.timestamp = (timestamp.to_f * 1000).to_i # TODO
         obh.currency_conversion = 1
         obh.write(file)
 
