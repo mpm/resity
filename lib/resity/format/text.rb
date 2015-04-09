@@ -25,6 +25,10 @@ module Resity
       attr_reader :last_data, :current_timestamp
 
       def initialize
+        super
+        reset
+        @th = TextHeader.new
+        @line = LineRecord.new
       end
 
     end
