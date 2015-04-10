@@ -6,23 +6,17 @@ module Resity
     # In practice you might want to use a more powerful engine like git
     # for this, but it will suffice to get the idea.
     class Text < Base
-
-      require 'bindata'
-
       class TextHeader < ::BinData::Record
         endian :little
-        uint32 :currency_conversion
-        uint16 :bids_count
-        uint16 :asks_count
+        uint16 :line_count
       end
 
-      class TextRecord < ::BinData::Record
+      class LineRecord < ::BinData::Record
         endian :little
-        # FIXME: datatype
-        double_le :amount
-        double_le :price
+        uint16 :line_number
+        uint16 :len
+        string :line, :read_length => :len
       end
-      attr_reader :last_data, :current_timestamp
 
       def initialize
         super
@@ -30,7 +24,6 @@ module Resity
         @th = TextHeader.new
         @line = LineRecord.new
       end
-
     end
   end
 end
