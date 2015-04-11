@@ -97,7 +97,7 @@ container.read # returns an Resity::Format snapshot from the current position
 
 container.write(data) # Passes data on to the Resity::Format object
 
-The underlying container file will only be opened (and locked) while beeing accessed through seek, read and write
+The underlying container file will be opened (and locked) while until the resity instance is running.
 
 ### Implementing custom formats
 
