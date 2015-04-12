@@ -23,7 +23,9 @@ module Resity
         reset
         @th = TextHeader.new
         @line = LineRecord.new
+        @data = []
       end
+
     end
   end
 end
