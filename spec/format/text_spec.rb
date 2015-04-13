@@ -5,24 +5,24 @@ module Resity
     describe Text do
       let(:format) { Text.new }
       let(:lines) do
-        [[0, "# version 0.9"],
-         [1, ""],
-         [2, "This is the first"],
-         [3, "draft of this text."],
-         [4, "Not much work was done."]]
+        {0 => "# version 0.9",
+         1 => "",
+         2 => "This is the first",
+         3 => "draft of this text.",
+         4 => "Not much work was done."}
       end
 
       let(:lines2) do
-        [[0, "# version 1.0"],
-         [1, ""],
-         [2, "This is the second"],
-         [3, "draft of this text."],
-         [4, "Some more work was done."]]
+        {0 => "# version 1.0",
+         1 => "",
+         2 => "This is the second",
+         3 => "draft of this text.",
+         4 => "Some more work was done."}
       end
 
       describe "#new" do
         it "initializes with empty text" do
-          expect(format.data).to eq([])
+          expect(format.data).to eq({})
         end
       end
 
@@ -38,9 +38,9 @@ module Resity
           format.update(lines)
           format.update(lines2)
           expect(format.delta_data).to eq(
-            [[0, "# version 1.0"],
-             [2, "This is the second"],
-             [4, "Some more work was done."]])
+            {0 => "# version 1.0",
+             2 => "This is the second",
+             4 => "Some more work was done."})
         end
       end
 
@@ -48,7 +48,7 @@ module Resity
         it 'generates an empty orderbook without delta' do
           format.update(lines)
           format.reset
-          expect(format.data).to eq([])
+          expect(format.data).to eq({})
         end
       end
 

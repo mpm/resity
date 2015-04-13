@@ -23,9 +23,24 @@ module Resity
         reset
         @th = TextHeader.new
         @line = LineRecord.new
-        @data = []
+        reset
       end
 
+      def reset
+        @data = @last_data = {}
+      end
+
+      def calc_delta(old, new)
+        diff = new
+        old.each do |line_no, content|
+          if !diff[line_no]
+            diff[line_no] = nil
+          elsif content == diff[line_no]
+            diff.delete(line_no)
+          end
+          diff
+        end
+      end
     end
   end
 end
