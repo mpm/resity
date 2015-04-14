@@ -110,7 +110,7 @@ module Resity
       end
 
       describe "#calc_delta" do
-
+        xit 'describe me'
       end
 
       describe "#data" do

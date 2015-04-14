@@ -41,6 +41,46 @@ module Resity
         end
         diff
       end
+
+      def write_snapshot(file)
+        write_text_records(file, data)
+      end
+
+      def write_delta(file)
+        write_text_records(file, delta_data)
+      end
+
+      def read_snapshot(file)
+        reset
+        read_text_records(file)
+      end
+
+      def read_delta(file)
+        read_text_records(file)
+      end
+
+      private
+
+      def write_text_records(file, data)
+        @th.line_count = data.size
+        @th.write(file)
+        data.each do |no, line|
+          @line.line_number = no
+          @line.line = line
+          @line.len = line.length
+          @line.write(file)
+        end
+      end
+
+      def read_text_records(file)
+        @th.read(file)
+        lines = {}
+        @th.line_count.times do
+          @line.read(file)
+          lines[@line.line_number] = @line.line
+        end
+        update(lines)
+      end
     end
   end
 end
