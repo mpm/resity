@@ -38,8 +38,8 @@ module Resity
           elsif content == diff[line_no]
             diff.delete(line_no)
           end
-          diff
         end
+        diff
       end
     end
   end
