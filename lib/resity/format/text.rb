@@ -31,14 +31,23 @@ module Resity
       end
 
       def calc_delta(old, new)
-        diff = new
+        diff = new.dup
         old.each do |line_no, content|
-          if !diff[line_no]
-            diff[line_no] = nil
-          elsif content == diff[line_no]
-            diff.delete(line_no)
+          if new[line_no] == nil
+            if content == nil
+              diff.delete(line_no)
+            else
+              diff[line_no] = nil
+            end
+          #elsif content == new[line_no]
+            #diff.delete(line_no)
           end
         end
+
+        new.each do |line_no, content|
+          diff.delete(line_no) if old[line_no] == content
+        end
+
         diff
       end
 
@@ -64,8 +73,9 @@ module Resity
       def write_text_records(file, data)
         @th.line_count = data.size
         @th.write(file)
-        data.each do |no, line|
-          @line.line_number = no
+        data.each do |line_number, line|
+          @line = LineRecord.new
+          @line.line_number = line_number
           @line.line = line
           @line.len = line.length
           @line.write(file)
@@ -76,6 +86,7 @@ module Resity
         @th.read(file)
         lines = {}
         @th.line_count.times do
+          @line = LineRecord.new
           @line.read(file)
           lines[@line.line_number] = @line.line
         end

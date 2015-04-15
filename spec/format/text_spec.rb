@@ -57,29 +57,28 @@ module Resity
         let(:file) { StringIO.new }
 
         describe "#read_snapshot" do
-          xit "overwrites existing data with new snapshot" do
+          it "overwrites existing data with new snapshot" do
             buffer.update(lines2)
             buffer.write_snapshot(file)
             file.seek(0)
 
             format.update(lines)
             format.read_snapshot(file)
-            expect(format.data).to eq(lines)
+            expect(format.data).to eq(lines2)
           end
         end
 
         describe "#read_delta" do
-          xit "applies delta to existing order book" do
-            buffer.update(book)
-            buffer.update(book2)
+          it "applies delta to existing data" do
+            buffer.update(lines)
+            buffer.update(lines2)
             buffer.write_delta(file)
             file.seek(0)
 
-            format.update(book)
+            format.update(lines)
             format.read_delta(file)
 
-            expect(format.data[:bids]).to eq(book2[:bids].merge({98.0 => 0.0}))
-            expect(format.data[:asks]).to eq(book2[:asks].merge({102.0 => 0.0}))
+            expect(format.data).to eq(lines2)
           end
         end
 
