@@ -84,13 +84,11 @@ module Resity
 
       def read_text_records(file)
         @th.read(file)
-        lines = {}
         @th.line_count.times do
           @line = LineRecord.new
           @line.read(file)
-          lines[@line.line_number] = @line.line
+          @data[@line.line_number] = @line.line
         end
-        update(lines)
       end
     end
   end
