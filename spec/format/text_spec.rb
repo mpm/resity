@@ -95,21 +95,21 @@ module Resity
         end
 
         describe "#write_delta" do
-          xit "writes delta from old and new order book" do
-            format.update(book)
-            format.update(book2)
+          it "writes delta from old and new order book" do
+            format.update(lines)
+            format.update(lines2)
             format.write_delta(file)
 
             file.seek(0)
             buffer.read_snapshot(file)
-            expect(buffer.data[:bids]).to eq({100.0 => 5.0, 98.0 => 0.0})
-            expect(buffer.data[:asks]).to eq({101.0 => 0.0, 102.0 => 0.0})
+            expect(buffer.data).to eq({0 => "# version 1.0",
+                                       2 => "This is the second",
+                                       4 => "Some more work was done."})
           end
         end
       end
 
       describe "#calc_delta" do
-        xit 'describe me'
       end
 
       describe "#data" do
