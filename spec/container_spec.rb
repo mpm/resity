@@ -11,12 +11,27 @@ module Resity
 
     describe 'new specs' do
       describe '#new' do
+        it 'requires read or write mode' do
+          %i(read write).each do |mode|
+            expect do
+              Container.new('test_btcusd', Format::Text, mode, io: @file)
+            end.to_not raise_error
+          end
+
+          expect do
+            Container.new('test_btcusd', Format::Text, :illegal_mode, io: @file)
+          end.to raise_exception(ContainerModeError)
+        end
         it 'creates a new file if none exists'
         it 'opens an existing file and skips to the end'
       end
 
       describe '#write' do
-        it 'raises an error if opened in read mode'
+        it 'raises an error if opened in read mode' do
+          container = Container.new('test_btcusd', Format::Text, :read, io: @file)
+          expect { container.write(Time.now, 'hi there') }.to raise_exception(ContainerModeError)
+        end
+
         it 'adds a snapshot via format'
       end
 
