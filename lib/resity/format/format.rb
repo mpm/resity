@@ -2,7 +2,7 @@ require 'spec_helper'
 module Resity
   module Format
     class Base
-      attr_reader :last_data, :current_timestamp, :delta_data
+      attr_reader :last_data, :delta_data
 
       def initialize
       end
@@ -11,8 +11,7 @@ module Resity
         @data
       end
 
-      def update(value, timestamp = nil)
-        @current_timestamp = timestamp || Time.now
+      def update(value)
         @delta_data = calc_delta(data, value)
         @last_data = data
         @data = value

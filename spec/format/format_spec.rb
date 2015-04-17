@@ -24,12 +24,6 @@ describe Resity::Format do
       expect(format.last_data).to eq(120)
     end
 
-    it 'stores a given timestamp current_timestamp' do
-      ts = Time.now - 24 * 60
-      format.update(125, ts)
-      expect(format.current_timestamp).to eq(ts)
-    end
-
     it 'calls delta method' do
       format.update(120)
 
