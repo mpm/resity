@@ -43,8 +43,12 @@ module Resity
         initialize_file
       else
         initialize_from_file
-        scan_last_timestamp unless options[:readonly]
+        scan_last_timestamp if @mode == :write
       end
+    end
+
+    def scan_last_timestamp
+      # TODO: 
     end
 
 

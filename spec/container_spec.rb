@@ -36,7 +36,11 @@ module Resity
       end
 
       describe '#seek' do
-        it 'raises an error if opened in write mode'
+        it 'raises an error if opened in write mode' do
+          container = Container.new('test_btcusd', Format::Text, :write, io: @file)
+          expect { container.seek(Time.now) }.to raise_exception(ContainerModeError)
+        end
+
         it 'skips forward to the nearest data that is > timestamp'
         it 'skips backwards to the nearest data the is < timestamp'
       end
