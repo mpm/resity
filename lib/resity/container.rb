@@ -100,6 +100,8 @@ module Resity
 
     def goto_first_snapshot
       @io.seek(1024)
+      # TODO: read checkpoint / data at cursor and set last_timestamp
+
     end
 
     private
@@ -172,6 +174,7 @@ module Resity
     end
 
     def update_last_checkpoint
+      # FIXME: use push_location
       old_pos = @io.pos
       @io.seek(@header.last_checkpoint)
       @last_checkpoint.next_block = @io.size + 1
@@ -181,7 +184,7 @@ module Resity
     end
 
     def push_location
-      @locations.push(@io.position)
+      @locations.push(@io.pos)
     end
 
     def pop_location
