@@ -35,7 +35,7 @@ module Resity
           logger.warn "could not lock db #{ff}" if logger
         end
       end
-      @last_timestamp = nil
+      last_timestamp = nil
       @last_checkpoint = nil
 
       @io.seek(0)
@@ -88,9 +88,9 @@ module Resity
     end
 
     def seek(timestamp)
-      goto_first_snapshot if timestamp < current_timestamp
+      goto_first_snapshot if !last_timestamp || timestamp < last_timestamp
 
-      while current_timestamp < timestamp
+      while last_timestamp < timestamp
         read_snapshot # automatically loads next snapshot and skips all diffs inbetween, regardless of current position in file
         #while (scan_last_timestamp(timestamp) == :next_checkpoint) do
         #  raise 'huh?'
@@ -157,7 +157,7 @@ module Resity
     def post_write_handling(timestamp)
       @last_checkpoint.increase_changesets
       update_last_checkpoint
-      @last_timestamp = timestamp
+      last_timestamp = timestamp
     end
 
     def write_header
