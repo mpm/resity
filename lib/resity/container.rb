@@ -101,6 +101,9 @@ module Resity
     def goto_first_snapshot
       @io.seek(1024)
       # TODO: read checkpoint / data at cursor and set last_timestamp
+      cph = CheckpointHeader.new
+      cph.read(@io)
+
 
     end
 
