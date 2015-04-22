@@ -35,7 +35,7 @@ module Resity
           logger.warn "could not lock db #{ff}" if logger
         end
       end
-      last_timestamp = nil
+      self.last_timestamp = nil
       @last_checkpoint = nil
 
       @io.seek(0)
@@ -62,12 +62,12 @@ module Resity
     end
 
     def data
-      @format.data
+      format.data
     end
 
     def add_delta(timestamp, data)
       write_delta_header(timestamp)
-      @format.write_delta(@io)
+      format.write_delta(@io)
       push_location
       update_last_snapshot_header
       update_header
@@ -80,7 +80,7 @@ module Resity
       csh = Frames::ChangesetHeader.new
       csh.timestamp = timestamp
       @io.write(csh)
-      @format.write_diff
+      format.write_diff
     end
 
     def xadd_snapshot
@@ -100,11 +100,20 @@ module Resity
 
     def goto_first_snapshot
       @io.seek(1024)
-      # TODO: read checkpoint / data at cursor and set last_timestamp
-      cph = CheckpointHeader.new
+      read_snapshot
+    end
+
+    def read_snapshot
+      ch = Frames::ChangesetHeader.new
+      cph = Frames::CheckpointHeader.new
       cph.read(@io)
-
-
+      cph.num_changesets.times do |index|
+        # TODO: stop after first read, store global state (if next checkpoint is ocming up or if we are inbetween)
+        ch.clear
+        ch.read(@io)
+        self.last_timestamp = ch.timestamp
+        format.read_delta
+      end
     end
 
     private
