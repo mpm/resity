@@ -88,6 +88,7 @@ module Resity
     end
 
     def seek(timestamp)
+      raise_unless :read
       goto_first_snapshot if !last_timestamp || timestamp < last_timestamp
 
       while last_timestamp < timestamp
