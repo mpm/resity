@@ -15,6 +15,7 @@ module Resity
         raise ContainerModeError.new("Illegal mode specified (#{mode}). Should be read or write")
       end
       @mode = mode
+      @changesets_to_read = 0
       @locations_stack = []
       @format = format.new
       raise "invalid format #{@format.class}" if !(format < Format::Base)
@@ -92,7 +93,9 @@ module Resity
       goto_first_snapshot if !last_timestamp || timestamp < last_timestamp
 
       while last_timestamp < timestamp
-        read_snapshot # automatically loads next snapshot and skips all diffs inbetween, regardless of current position in file
+        # TODO: read_snapshot or skip back
+        #read_snapshot # automatically loads next snapshot and skips all diffs inbetween, regardless of current position in file
+        read_changeset
         #while (scan_last_timestamp(timestamp) == :next_checkpoint) do
         #  raise 'huh?'
         #end
@@ -101,20 +104,32 @@ module Resity
 
     def goto_first_snapshot
       @io.seek(1024)
-      read_snapshot
+      read_changeset
     end
 
-    def read_snapshot
+    def read_snapshot_header
       ch = Frames::ChangesetHeader.new
       cph = Frames::CheckpointHeader.new
       cph.read(@io)
-      cph.num_changesets.times do |index|
-        # TODO: stop after first read, store global state (if next checkpoint is ocming up or if we are inbetween)
-        ch.clear
-        ch.read(@io)
-        self.last_timestamp = ch.timestamp
-        format.read_delta
+      #cph.num_changesets.times do |index|
+        ## TODO: stop after first read, store global state (if next checkpoint is ocming up or if we are inbetween)
+        #ch.clear
+        #ch.read(@io)
+        #self.last_timestamp = ch.timestamp
+        #format.read_delta
+      #end
+    end
+
+    def read_changeset
+      if @changesets_to_read == 0
+        read_snapshot_header
+        format.reset
       end
+      ch.clear
+      ch.read(@io)
+      self.last_timestamp = ch.timestamp
+      format.read_delta
+      @changesets_to_read -= 1
     end
 
     private

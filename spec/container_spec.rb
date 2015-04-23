@@ -49,6 +49,10 @@ module Resity
         it 'reads data into format at given timestamp'
       end
 
+      describe "#read_snapshot_header" do
+        xit "do me"
+      end
+
     end
 
 =begin
