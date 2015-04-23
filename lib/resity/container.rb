@@ -76,16 +76,29 @@ module Resity
     end
 
     #private
-    def write_diff_header
+    def write_delta_header(timestamp)
       # untested
       csh = Frames::ChangesetHeader.new
-      csh.timestamp = timestamp
+      csh.timestamp = (timestamp.to_f * 1000).to_i
       @io.write(csh)
-      format.write_diff
     end
 
-    def xadd_snapshot
-      # ....
+    def write_snapshot_header
+      cph = Frames::CheckpointHeader.new(
+        previous_block: @header.last_checkpoint,
+        next_block: 0,
+        checksum: 0,
+        num_changesets: 1)
+      @io.write(cph)
+      @last_checkpoint = cph
+    end
+
+    def add_snapshot(timestamp, data)
+      write_snapshot_header
+      write_delta_header(timestamp)
+      format.reset
+      format.update(data)
+      format.write_snapshot(@io)
     end
 
     def seek(timestamp)

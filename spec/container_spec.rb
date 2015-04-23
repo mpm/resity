@@ -32,7 +32,17 @@ module Resity
           expect { container.write(Time.now, 'hi there') }.to raise_exception(ContainerModeError)
         end
 
-        it 'adds a snapshot via format'
+        it 'adds a snapshot via format' do
+          container = Container.new('test_btcusd', Format::Text, :write, io: @file)
+          container.write(Time.now, [[0, 'my text']])
+
+          @file.seek(1024 + (Frames::CheckpointHeader.new.num_bytes + Frames::ChangesetHeader.new.num_bytes))
+
+          format = Format::Text.new
+
+          format.read_delta(@file)
+          expect(format.data).to eq([0, 'my text'])
+        end
       end
 
       describe '#seek' do
@@ -50,7 +60,8 @@ module Resity
       end
 
       describe "#read_snapshot_header" do
-        xit "do me"
+        xit 'reads a timestamp and first changeset' do
+        end
       end
 
     end
