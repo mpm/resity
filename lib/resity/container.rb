@@ -39,12 +39,15 @@ module Resity
       self.last_timestamp = nil
       @last_checkpoint = nil
 
-      @io.seek(0)
-      if @io.size == 0
-        initialize_file
-      else
-        initialize_from_file
-        scan_last_timestamp if @mode == :write
+      unless options[:no_init]
+
+        @io.seek(0)
+        if @io.size == 0
+          initialize_file
+        else
+          initialize_from_file
+          scan_last_timestamp if @mode == :write
+        end
       end
     end
 
