@@ -40,7 +40,6 @@ module Resity
       @last_checkpoint = nil
 
       unless options[:no_init]
-
         @io.seek(0)
         if @io.size == 0
           initialize_file
@@ -83,7 +82,7 @@ module Resity
       # untested
       csh = Frames::ChangesetHeader.new
       csh.timestamp = (timestamp.to_f * 1000).to_i
-      @io.write(csh)
+      csh.write(@io)
     end
 
     def write_snapshot_header
@@ -92,7 +91,7 @@ module Resity
         next_block: 0,
         checksum: 0,
         num_changesets: 1)
-      @io.write(cph)
+      cph.write(@io)
       @last_checkpoint = cph
     end
 
