@@ -34,7 +34,11 @@ module Resity
 
         it 'adds a snapshot via format' do
           container = Container.new('test_btcusd', Format::Text, :write, io: @file)
-          container.write(Time.now, [[0, 'my text']])
+          expect {
+            container.write(Time.now, [[0, 'my text']])
+          }.to recieve:w
+
+
 
           @file.seek(1024 + (Frames::CheckpointHeader.new.num_bytes + Frames::ChangesetHeader.new.num_bytes))
 
