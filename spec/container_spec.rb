@@ -42,6 +42,21 @@ module Resity
           format.read_delta(@file)
           expect(format.data).to eq({0=>'my text'})
         end
+
+        it 'adds a delta on subsequent calls' do
+          container = Container.new('test_btcusd', Format::Text, :write, io: @file)
+          container.write(Time.now, {0 => 'my text'})
+
+          expect(container).to receive(:write_delta)
+          container.write(Time.now, {0 => 'my text2'})
+
+          #@file.seek(1024 + (Frames::CheckpointHeader.new.num_bytes + Frames::ChangesetHeader.new.num_bytes))
+          #format = Format::Text.new
+
+          #format.read_delta(@file)
+          #expect(format.data).to eq({0=>'my text'})
+
+        end
       end
 
       describe '#seek' do
