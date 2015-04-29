@@ -72,9 +72,21 @@ module Resity
       write_delta_header(timestamp)
       format.write_delta(@io)
       push_location
+      # TODO
       update_last_snapshot_header
-      update_header
+      # when writing a delta, header doesn't need to be updated
+      #update_header
       pop_location
+    end
+
+    def update_last_snapshot_header
+      push_location
+      @last_checkpoint.increase_changesets
+      # seek auf last checkpoint position
+      # from @header.last_checkpoint oder so
+      @last_checkpoint.write(@io)
+      pop_location
+
     end
 
     #private
@@ -227,7 +239,7 @@ module Resity
     end
 
     def push_location
-      @locations.push(@io.pos)
+      (@locations ||= []).push(@io.pos)
     end
 
     def pop_location
