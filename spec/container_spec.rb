@@ -9,6 +9,11 @@ module Resity
       stub_const("Container::MAX_CHANGESETS", 10)
     end
 
+    after(:each) do
+      @file.close
+      @file.unlink
+    end
+
     describe 'new specs' do
       describe '#new' do
         it 'requires read or write mode' do
@@ -27,15 +32,20 @@ module Resity
       end
 
       describe '#write' do
+        let(:container) do
+          Container.new('test_btcusd', Format::Text, :write, io: @file)
+        end
+
+        before(:each) do
+          container.write(Time.now, {0 => 'my text'})
+        end
+
         it 'raises an error if opened in read mode' do
-          container = Container.new('test_btcusd', Format::Text, :read, io: @file)
-          expect { container.write(Time.now, 'hi there') }.to raise_exception(ContainerModeError)
+          read_container = Container.new('test_btcusd', Format::Text, :read, io: @file)
+          expect { read_container.write(Time.now, 'hi there') }.to raise_exception(ContainerModeError)
         end
 
         it 'adds a snapshot via format' do
-          container = Container.new('test_btcusd', Format::Text, :write, io: @file)
-          container.write(Time.now, {0 => 'my text'})
-
           @file.seek(1024 + (Frames::CheckpointHeader.new.num_bytes + Frames::ChangesetHeader.new.num_bytes))
           format = Format::Text.new
 
@@ -44,18 +54,11 @@ module Resity
         end
 
         it 'adds a delta on subsequent calls' do
-          container = Container.new('test_btcusd', Format::Text, :write, io: @file)
-          container.write(Time.now, {0 => 'my text'})
-
           expect(container).to receive(:add_delta)
           container.write(Time.now, {0 => 'my text2'})
         end
 
         it 'adds a fullsnapshot again after X amounts of deltas' do
-          container = Container.new('test_btcusd', Format::Text, :write, io: @file)
-
-          container.write(Time.now, {0 => 'my text'})
-
           expect(container).to receive(:add_delta).exactly(9).times
           9.times { |i| container.write(Time.now, {0 => "my text #{i}"}) }
 
