@@ -47,15 +47,20 @@ module Resity
           container = Container.new('test_btcusd', Format::Text, :write, io: @file)
           container.write(Time.now, {0 => 'my text'})
 
-          expect(container).to receive(:write_delta)
+          expect(container).to receive(:add_delta)
           container.write(Time.now, {0 => 'my text2'})
+        end
 
-          #@file.seek(1024 + (Frames::CheckpointHeader.new.num_bytes + Frames::ChangesetHeader.new.num_bytes))
-          #format = Format::Text.new
+        it 'adds a fullsnapshot again after X amounts of deltas' do
+          container = Container.new('test_btcusd', Format::Text, :write, io: @file)
 
-          #format.read_delta(@file)
-          #expect(format.data).to eq({0=>'my text'})
+          container.write(Time.now, {0 => 'my text'})
 
+          expect(container).to receive(:add_delta).exactly(9).times
+          9.times { |i| container.write(Time.now, {0 => "my text #{i}"}) }
+
+          expect(container).to receive(:add_snapshot)
+          container.write(Time.now, {0 => 'my final text'})
         end
       end
 
