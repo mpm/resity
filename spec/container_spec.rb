@@ -36,6 +36,8 @@ module Resity
           Container.new('test_btcusd', Format::Text, :write, io: @file)
         end
 
+        let(:data) { {0 => 'some data'} }
+
         before(:each) do
           container.write(Time.now, {0 => 'my text'})
         end
@@ -64,6 +66,23 @@ module Resity
 
           expect(container).to receive(:add_snapshot)
           container.write(Time.now, {0 => 'my final text'})
+        end
+      end
+
+      describe '#add_snapshot' do
+        let(:container) do
+          Container.new('test_btcusd', Format::Text, :write, io: @file)
+        end
+
+        let(:data) { {0 => 'some data'} }
+
+        it 'adds a delta header'
+
+        it 'increases @last_checkpoint.num_changesets' do
+          container.write(Time.now, data)
+          container.add_delta(Time.now, data)
+          expect { container.add_delta(Time.now, data) }.
+            to change { container.last_checkpoint.num_changesets }.by(1)
         end
       end
 

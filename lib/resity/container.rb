@@ -8,7 +8,7 @@ module Resity
     STORAGE_VERSION = 1
 
     attr_accessor :name, :last_timestamp, :format
-    attr_reader :io, :header, :logger
+    attr_reader :io, :header, :logger, :last_checkpoint
 
     def initialize(filename, format, mode, options = {})
       unless %i(read write).include?(mode)
