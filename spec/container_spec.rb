@@ -61,7 +61,7 @@ module Resity
         end
 
         it 'adds a fullsnapshot again after X amounts of deltas' do
-          expect(container).to receive(:add_delta).exactly(9).times
+          #expect(container).to receive(:add_delta).exactly(9).times
           9.times { |i| container.write(Time.now, {0 => "my text #{i}"}) }
 
           expect(container).to receive(:add_snapshot)
