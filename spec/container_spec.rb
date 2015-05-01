@@ -6,7 +6,6 @@ module Resity
     before(:each) do
       # @file = StringIO.new("", "a+b")
       @file = Tempfile.new('barbtest')
-      stub_const("Container::MAX_CHANGESETS", 10)
     end
 
     after(:each) do
@@ -33,7 +32,7 @@ module Resity
 
       describe '#write' do
         let(:container) do
-          Container.new('test_btcusd', Format::Text, :write, io: @file)
+          Container.new('test_btcusd', Format::Text, :write, io: @file, max_changesets: 10)
         end
 
         let(:data) { {0 => 'some data'} }
@@ -61,8 +60,9 @@ module Resity
         end
 
         it 'adds a fullsnapshot again after X amounts of deltas' do
-          #expect(container).to receive(:add_delta).exactly(9).times
-          9.times { |i| container.write(Time.now, {0 => "my text #{i}"}) }
+          # TODO: receive and execute proper code
+          #expect(container).to receive(:add_delta).exactly(10).times
+          10.times { |i| container.write(Time.now, {0 => "my text #{i}"}) }
 
           expect(container).to receive(:add_snapshot)
           container.write(Time.now, {0 => 'my final text'})

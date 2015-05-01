@@ -8,13 +8,14 @@ module Resity
     STORAGE_VERSION = 1
 
     attr_accessor :name, :last_timestamp, :format
-    attr_reader :io, :header, :logger, :last_checkpoint
+    attr_reader :io, :header, :logger, :last_checkpoint, :max_changesets
 
     def initialize(filename, format, mode, options = {})
       unless %i(read write).include?(mode)
         raise ContainerModeError.new("Illegal mode specified (#{mode}). Should be read or write")
       end
       @mode = mode
+      @max_changesets = options[:max_changesets] || MAX_CHANGESETS
       @changesets_to_read = 0
       @locations_stack = []
       @format = format.new
@@ -57,7 +58,7 @@ module Resity
 
     def write(timestamp, data)
       raise_unless :write
-      if @last_checkpoint == nil || @last_checkpoint.num_changesets >= MAX_CHANGESETS
+      if @last_checkpoint == nil || @last_checkpoint.num_changesets > max_changesets
         add_snapshot(timestamp, data)
       else
         add_delta(timestamp, data)
