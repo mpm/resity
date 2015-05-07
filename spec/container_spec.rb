@@ -82,7 +82,7 @@ module Resity
           container.write(Time.now, data)
           container.add_delta(Time.now, data)
           expect { container.add_delta(Time.now, data) }.
-            to change { container.last_checkpoint.num_changesets }.by(1)
+            to change{ container.last_checkpoint.num_changesets }.by(1)
         end
       end
 
